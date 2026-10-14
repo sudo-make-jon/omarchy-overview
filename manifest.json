@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "jonathan.window-overview",
   "name": "Window Overview",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Jonathan",
   "license": "MIT",
   "description": "A GNOME-style overview of open windows, grouped by monitor",

@@ -7,9 +7,17 @@ Item {
   id: root
 
   property bool opened: false
+  property bool focusPrimed: false
   property var selectedToplevel: null
   readonly property var allToplevels: ToplevelManager.toplevels.values
   readonly property var visibleToplevels: root.filteredToplevels()
+
+  Timer {
+    id: focusPrimeTimer
+    interval: 75
+    repeat: false
+    onTriggered: root.focusPrimed = true
+  }
 
   function filteredToplevels() {
     var result = []
@@ -41,15 +49,19 @@ Item {
   function open(payloadJson) {
     var windows = root.visibleToplevels
     if (windows.length === 0) {
-      root.opened = false
+      root.close()
       return
     }
     var active = ToplevelManager.activeToplevel
     root.selectedToplevel = windows.indexOf(active) >= 0 ? active : windows[0]
+    root.focusPrimed = false
     root.opened = true
+    focusPrimeTimer.restart()
   }
 
   function close() {
+    focusPrimeTimer.stop()
+    root.focusPrimed = false
     root.opened = false
     root.selectedToplevel = null
   }
@@ -89,8 +101,13 @@ Item {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "jonathan-window-overview"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: modelData === Quickshell.screens[0]
-          ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        // Prime keyboard focus after the shortcut; permanent Exclusive focus
+        // can prevent pointer events from reaching the overview surface.
+        WlrLayershell.keyboardFocus: {
+          if (modelData !== Quickshell.screens[0] || !root.opened)
+            return WlrKeyboardFocus.None
+          return root.focusPrimed ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive
+        }
 
         Item {
           id: canvas
