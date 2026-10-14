@@ -26,6 +26,16 @@ class PointerFocusPolicyTests(unittest.TestCase):
             r"modelData\s*!==\s*Quickshell\.screens\[0\]\s*\|\|\s*!root\.opened[\s\S]*?return\s+WlrKeyboardFocus\.None",
         )
 
+    def test_application_name_is_shown_above_each_preview(self):
+        source = QML.read_text()
+        self.assertIn("function applicationName(toplevel)", source)
+        self.assertIn("text: root.applicationName(tile.toplevel)", source)
+        tile_source = source.split("delegate: Item {", 1)[1].split(
+            "MouseArea {", 1
+        )[0]
+        self.assertLess(tile_source.index("applicationNameLabel"), tile_source.index("id: previewFrame"))
+        self.assertIn("tile.toplevel.title || tile.toplevel.appId || \"Window\"", tile_source)
+
     def test_open_with_no_windows_cancels_any_pending_focus_prime(self):
         source = QML.read_text()
         open_body = source.split("function open(payloadJson)", 1)[1].split(

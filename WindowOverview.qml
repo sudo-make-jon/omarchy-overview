@@ -31,6 +31,15 @@ Item {
     return result
   }
 
+  function applicationName(toplevel) {
+    var appId = toplevel && toplevel.appId ? String(toplevel.appId).trim() : ""
+    if (!appId) return "Unknown application"
+    appId = appId.replace(/\.desktop$/i, "")
+    var parts = appId.split(/[/.]/)
+    var name = parts[parts.length - 1].replace(/[-_]+/g, " ")
+    return name.replace(/\b\w/g, function(letter) { return letter.toUpperCase() })
+  }
+
   function windowsForScreen(targetScreen) {
     var result = []
     var windows = root.visibleToplevels
@@ -156,12 +165,25 @@ Item {
                   readonly property var toplevel: modelData
                   readonly property bool selected: root.selectedToplevel === tile.toplevel
                   width: Math.min(350, (content.width - (windowGrid.columns - 1) * windowGrid.spacing) / windowGrid.columns)
-                  height: width * 0.68 + 38
+                  height: width * 0.68 + 64
+
+                  Text {
+                    id: applicationNameLabel
+                    anchors { top: parent.top; left: parent.left; right: parent.right }
+                    height: 20
+                    text: root.applicationName(tile.toplevel)
+                    color: "#eeeeee"
+                    font.family: Style.font.family
+                    font.pixelSize: 13
+                    font.bold: true
+                    elide: Text.ElideRight
+                    verticalAlignment: Text.AlignVCenter
+                  }
 
                   Rectangle {
                     id: previewFrame
-                    anchors { top: parent.top; left: parent.left; right: parent.right }
-                    height: parent.height - 38
+                    anchors { top: applicationNameLabel.bottom; left: parent.left; right: parent.right; topMargin: 4 }
+                    height: parent.height - 64
                     radius: 12
                     color: "#292929"
                     clip: true
